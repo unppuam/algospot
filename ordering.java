@@ -126,14 +126,4 @@ class Node implements Comparable<Node>
 	{
 		indegree--;
 	}
-
-	public int compareTo(Node compareNode)
-	{
-		if(this.indegree < compareNode.indegree)
-			return -1;
-		else if(this.indegree == compareNode.indegree)
-			return 0;
-		else
-			return 1;
-	}
 }
