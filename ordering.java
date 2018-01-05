@@ -16,53 +16,93 @@ public class ordering
             int vertex = Integer.parseInt(input[0]);
             int arrow = Integer.parseInt(input[1]);
                        
-			Node[] node = new Node[vertex];
+			LinkedList<Node> nodeList = new LinkedList<Node>();
 			
-			for(int i=0;i<node.length;i++)
-				node[i] = new Node(i);
-
-            for(int i=0;i<arrow;i++)
+			for(int i=0;i<vertex;i++)
+				nodeList.add(new Node(i));
+            
+			for(int i=0;i<arrow;i++)
             {           
-                String[] relation = scan.nextLine().split(" ");
-                int prev = relation[0].charAt(0) - 65;
-                int next = relation[1].charAt(0) - 65;
+                String relation = scan.nextLine();
+                int prev = relation.charAt(0)-'A';
+                int next = relation.charAt(1)-'A';
 				
-				node[next].addPrev(prev);
-				node[prev].addNext(next);
+				nodeList.get(next).addPrev(prev);
+				nodeList.get(prev).addNext(next);
 			}
-
-			// Arrays.sort(node);
 			
-			/*
-			for(int i=0;i<node.length;i++)
+			LinkedList<Integer> result = new LinkedList<Integer>();
+			LinkedList<Integer> excluded = new LinkedList<Integer>();
+			
+			for(int i=0;i<nodeList.size();i++)
 			{
-				System.out.println(node[i].id+" ,"+node[i].indegree);
-			}
-			*/
-
-			//PriorityQueue<Node> searchQ = new PriorityQueue<Node>();
-			Queue<Node> resultQ = new LinkedList<Node>();
-
-			int count = 0;
-			while(node[count].indegree == 0)
-			{	
-				searchQ.offer(node[i]);
-				count++;
+				if(nodeList.get(i).indegree == 0 && nodeList.get(i).outdegree == 0)
+				{
+					excluded.add(nodeList.get(i).id);
+					nodeList.remove(i);
+					i--;
+				}
 			}
 
-			while(!searchQ.isEmpty())
+			int i=0;
+			while(!nodeList.isEmpty())
 			{
-
+				if(nodeList.get(i).indegree == 0)
+				{
+					result.add(nodeList.get(i).id);
+					down(nodeList.get(i),nodeList);
+					nodeList.remove(i);
+					i=-1;
+				}
+				i++;
 			}
+
+			printResult(result,excluded);
+			
 			rep--;
         }               
     }
+	public static void printResult(LinkedList<Integer> result, LinkedList<Integer> excluded)
+	{
+		String merged = "";
+		while(!result.isEmpty() && !excluded.isEmpty())
+		{
+			if(excluded.peek() < result.peek())
+				merged += (char)(excluded.poll() + 'A');
+			else
+				merged += (char)(result.poll() + 'A');
+		}
+		while(!result.isEmpty())
+			merged += (char)(result.poll() + 'A');
+		while(!excluded.isEmpty())
+			merged += (char)(excluded.poll() + 'A');
+
+		System.out.println(merged);
+	}
+	public static void down(Node node,LinkedList<Node> nodeList)
+	{
+		for(int i=0;i<node.nextList.size();i++)
+		{
+			int id = node.nextList.get(i);
+			search(id,nodeList).down();
+		}
+	}
+	public static Node search(int id,LinkedList<Node> nodeList)
+	{
+		for(int i=0;i<nodeList.size();i++)
+		{
+			if(nodeList.get(i).id == id)
+				return nodeList.get(i);
+		}
+		return null;
+	}
 }    
 
 class Node implements Comparable<Node>
 {
 	int id;
 	int indegree = 0;
+	int outdegree = 0;
 	LinkedList<Integer> prevList = new LinkedList<Integer>();	
 	LinkedList<Integer> nextList = new LinkedList<Integer>();	
 
@@ -79,6 +119,12 @@ class Node implements Comparable<Node>
 	public void addNext(int next)
 	{
 		nextList.add(next);
+		outdegree++;
+	}
+
+	public void down()
+	{
+		indegree--;
 	}
 
 	public int compareTo(Node compareNode)
